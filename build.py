@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # BlessingNest multi-faith generator — pure stdlib.
-import os, shutil, json
+import os, shutil, json, time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
+BUILD_V = str(int(time.time()))
 DIST = os.path.join(ROOT, "dist")
 SITE_URL = "https://blessingnest.pages.dev"
 INDEXNOW_KEY = "8f3e2a1c9b4d6e8f0a2c4e6b8d0f2a4c"
@@ -460,8 +461,8 @@ An independent spiritual-comfort page. Not affiliated with any religious organiz
 </footer>
 <script>window.FAITH = """ + json.dumps(config, ensure_ascii=False) + """;
 window.ADDR = """ + json.dumps({"trc20": ADDR_TRC20, "erc20": ADDR_ERC20}) + """;</script>
-<script src="assets/qrcode.min.js"></script>
-<script src="assets/app.js"></script>
+<script src="assets/qrcode.min.js?v=""" + BUILD_V + """"></script>
+<script src="assets/app.js?v=""" + BUILD_V + """"></script>
 </body></html>"""
 
     head = """<!DOCTYPE html>
@@ -474,7 +475,7 @@ window.ADDR = """ + json.dumps({"trc20": ADDR_TRC20, "erc20": ADDR_ERC20}) + """
 <meta property="og:title" content=\"""" + f["title"] + """\">
 <meta property="og:description" content=\"""" + f["desc"] + """\">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=""" + BUILD_V + """">
 <style>:root{""" + f["theme"] + """}</style>
 </head><body>"""
     return ("index.html", head + body)
