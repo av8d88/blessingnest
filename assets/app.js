@@ -26,10 +26,7 @@
     myCount++;
     localStorage.setItem(store + "candles", String(myCount));
     countEl.textContent = myCount;
-    if (name) {
-      addWish(F.candleWallText.replace("{name}", name));
-      showCert(name, null);
-    }
+    if (name) showCert(name, null);
   });
 
   // ===== Daily verse =====
@@ -49,22 +46,55 @@
     drawn = true;
   });
 
-  // ===== Blessing wall (GLOBAL, via Cloudflare Worker + KV) =====
+  // ===== Blessing wall (GLOBAL via CF Worker; free=preset only, patron=on-chain verified) =====
   var WALL_API = "https://blessing-wall.js8.workers.dev/api/wishes?site=" + F.id;
+  var AMEN_API = "https://blessing-wall.js8.workers.dev/api/amen?site=" + F.id;
   var wallList = $("wall-list");
   var wallItems = [];
   function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+  function getVoted() {
+    try { return JSON.parse(localStorage.getItem("bn_amen_voted") || "[]"); } catch (e) { return []; }
+  }
+  function markVoted(id) {
+    var v = getVoted(); v.push(id);
+    localStorage.setItem("bn_amen_voted", JSON.stringify(v));
+  }
+
+  function amenBtn(w) {
+    var voted = getVoted().indexOf(w.id) >= 0;
+    return '<button class="amen-btn" data-amen="' + w.id + '"' + (voted ? " disabled" : "") +
+      '>' + F.amenLabel + ' <span>' + (w.amen || 0) + '</span></button>';
+  }
+  function cardHtml(w) {
+    if (w.type === "patron") {
+      return '<div class="wish patron"><span class="crown">👑</span><b>' + esc(w.n) + '</b>' +
+        '<span class="pamount">$' + (w.amount || 0).toFixed(2) + '</span>' +
+        '<small> · ' + w.d + '</small><p>' + esc(w.t) + '</p>' + amenBtn(w) + '</div>';
+    }
+    return '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + w.d + '</small><p>' + esc(w.t) + '</p>' + amenBtn(w) + '</div>';
+  }
   function renderWall() {
     var html = "";
-    wallItems.forEach(function (w) {
-      html += '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + w.d + '</small><p>' + esc(w.t) + '</p></div>';
-    });
+    wallItems.forEach(function (w) { html += cardHtml(w); });
     F.seeds.forEach(function (w) {
       html += '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + F.seedDate + '</small><p>' + esc(w.t) + '</p></div>';
     });
     wallList.innerHTML = html;
+    wallList.querySelectorAll("[data-amen]").forEach(function (btn) {
+      btn.addEventListener("click", function () { voteAmen(btn.getAttribute("data-amen"), btn); });
+    });
   }
-  // load global wall (fallback: seeds only)
+  function voteAmen(id, btn) {
+    if (getVoted().indexOf(id) >= 0) return;
+    btn.disabled = true;
+    fetch(AMEN_API, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.amen !== undefined) btn.querySelector("span").textContent = d.amen;
+      markVoted(id);
+    }).catch(function () { btn.disabled = false; });
+  }
   if (window.fetch) {
     fetch(WALL_API).then(function (r) { return r.json(); }).then(function (d) {
       wallItems = (d.wishes || []);
@@ -72,26 +102,76 @@
     }).catch(function () { renderWall(); });
   } else { renderWall(); }
 
-  function addWish(text) {
-    var item = { n: F.youName, t: text, d: new Date().toISOString().slice(0, 10) };
-    wallItems.unshift(item);
-    renderWall();
-    // fire-and-forget sync to global wall (neutral name so it reads well worldwide)
-    if (window.fetch) {
-      fetch(WALL_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: F.youName === "你" ? "匿名善信" : "Anonymous", text: text })
-      }).catch(function () {});
+  // ===== Preset picker (free users: no typing) =====
+  function renderPresets() {
+    var box = $("preset-list");
+    if (!box) return;
+    var pool = F.presets.slice();
+    var picks = [];
+    while (picks.length < 6 && pool.length) {
+      picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     }
+    box.innerHTML = picks.map(function (p) {
+      return '<button class="preset-chip">' + esc(p) + '</button>';
+    }).join("");
+    box.querySelectorAll(".preset-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () { postFree(chip.textContent, chip); });
+    });
   }
-  $("hang-btn").addEventListener("click", function () {
-    var t = $("wish-text").value.trim();
-    if (!t) return;
-    addWish(t);
-    $("wish-text").value = "";
-  });
-  renderWall();
+  function postFree(text, chip) {
+    chip.disabled = true;
+    fetch(WALL_API, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "free", text: text })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.wish) {
+        wallItems.unshift(d.wish);
+        renderWall();
+        chip.classList.add("sent");
+        chip.textContent = F.presetSentText;
+      } else {
+        chip.disabled = false;
+      }
+    }).catch(function () { chip.disabled = false; });
+  }
+  renderPresets();
+  var refreshBtn = $("preset-refresh");
+  if (refreshBtn) refreshBtn.addEventListener("click", renderPresets);
+
+  // candle light also adds a preset-style wish (free type with preset text = candle text is custom...)
+  // -> candle wishes now just light visually + show cert; wall entry only via presets/patron.
+
+  // ===== Patron custom card (>=10 USDT, verified on-chain, one per txid) =====
+  var patronBtn = $("patron-btn");
+  if (patronBtn) {
+    patronBtn.addEventListener("click", function () {
+      var name = $("patron-name").value.trim();
+      var text = $("patron-text").value.trim();
+      var txid = $("patron-txid").value.trim();
+      var chain = $("patron-chain").value;
+      var out = $("patron-result");
+      if (!text || !txid) { out.textContent = F.patronNeedText; return; }
+      out.textContent = "…";
+      patronBtn.disabled = true;
+      fetch(WALL_API, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "patron", name: name, text: text, txid: txid, chain: chain })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        patronBtn.disabled = false;
+        if (d.wish) {
+          wallItems.unshift(d.wish);
+          renderWall();
+          out.textContent = F.patronOkText;
+          $("patron-text").value = ""; $("patron-txid").value = "";
+        } else {
+          out.textContent = d.error || F.patronFailText;
+        }
+      }).catch(function () {
+        patronBtn.disabled = false;
+        out.textContent = F.patronFailText;
+      });
+    });
+  }
 
   // ===== Tasbih (muslim only) =====
   var tasbih = $("tasbih-btn");

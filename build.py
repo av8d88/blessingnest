@@ -9,6 +9,10 @@ INDEXNOW_KEY = "8f3e2a1c9b4d6e8f0a2c4e6b8d0f2a4c"
 ADDR_TRC20 = "TJ7xmAQo2qUP3MTjKhag3zhRtXKg3pPP9H"
 ADDR_ERC20 = "0xffed67d9c05208F171cf6b7823a0CB0B0Ad496Cd"
 
+# preset blessing phrases (single source of truth shared with the Worker)
+with open(os.path.join(ROOT, "worker", "presets.json"), encoding="utf-8") as _pf:
+    PRESETS = json.load(_pf)
+
 # ---------------- faith configs ----------------
 FAITHS = [
 dict(
@@ -260,7 +264,15 @@ def faith_page(f):
                      share="我在祈福阁点了一盏灯，为重要的人祈福 🏮", linkCopied="链接已复制 · 功德+1",
                      patronsH="功 德 榜", patronsSub="链上真实随喜 · 自动上榜 · 童叟无欺",
                      rankH="查你的功德段位", rankPh="粘贴你的钱包地址（T... 或 0x...）", rankBtn="查询段位",
-                     certBtn="下载我的点灯证书", rankRank="段位")
+                     certBtn="下载我的点灯证书", rankRank="段位",
+                     presetH="挂一条祝福", presetSub="点选一句祝福语即可上墙（自定义内容为捐赠功德主专属）",
+                     refresh="换一批", presetSent="已挂上墙 🙏",
+                     patronH="功德主专属 · 自定义祈福卡",
+                     patronSub="单笔捐赠满 10 USDT，即可发布一张金色自定义祈福卡（链上验真 · 一笔一卡）",
+                     patronName="展示名字（可留空）", patronText="你的祈福语（120 字内）",
+                     patronTxid="交易哈希（TXID）", patronBtn="验真并发布",
+                     patronNeed="请填写祈福语和交易哈希", patronOk="验真成功！金色祈福卡已上墙 👑",
+                     patronFail="验真失败，请检查网络选择和交易哈希")
     else:
         tiers = [{"min": 0, "name": "Kind Heart"}, {"min": 5, "name": "Oil Giver"},
                  {"min": 20, "name": "Temple Light"}, {"min": 100, "name": "Golden Patron"}]
@@ -272,13 +284,26 @@ def faith_page(f):
                      share="I just lit a candle online for someone I care about 🕯️", linkCopied="Link copied",
                      patronsH="Patron Wall", patronsSub="Verified on-chain giving · updated automatically",
                      rankH="Check Your Patron Rank", rankPh="Paste your wallet address (T... or 0x...)", rankBtn="Check Rank",
-                     certBtn="Download My Certificate", rankRank="Rank")
+                     certBtn="Download My Certificate", rankRank="Rank",
+                     presetH="Leave a Blessing", presetSub="Tap a blessing to pin it to the wall (custom messages are a patron privilege)",
+                     refresh="More blessings", presetSent="Pinned 🙏",
+                     patronH="Patron Privilege · Custom Blessing Card",
+                     patronSub="Donate 10+ USDT in a single transaction to publish a golden custom card (verified on-chain · one card per transaction)",
+                     patronName="Display name (optional)", patronText="Your blessing (max 120 chars)",
+                     patronTxid="Transaction hash (TXID)", patronBtn="Verify & Publish",
+                     patronNeed="Please fill in your blessing and TXID", patronOk="Verified! Your golden card is on the wall 👑",
+                     patronFail="Verification failed — check the network and TXID")
 
+    amen_labels = {"christian": "Amen 🙏", "muslim": "Amin 🤲", "hindu": "Shubh 🙏",
+                   "jewish": "Amen ✡️", "buddhist": "Sadhu 🙏", "chinese": "帮祈 🙏"}
     config = {
         "id": f["id"], "candleWallText": f["candle_wall_text"], "youName": f["you_name"],
         "seedDate": f["seed_date"], "onceDailyText": f["once_text"],
         "copyText": f["copy_text"], "copiedText": f["copied_text"], "addrPendingText": f["pending_text"],
-        "verses": f["verses"], "seeds": f["seeds"],
+        "verses": f["verses"], "seeds": f["seeds"], "presets": PRESETS.get(f["id"], []),
+        "amenLabel": amen_labels.get(f["id"], "Amen 🙏"),
+        "presetSentText": texts["presetSent"],
+        "patronNeedText": texts["patronNeed"], "patronOkText": texts["patronOk"], "patronFailText": texts["patronFail"],
         "tiers": tiers, "noPatronsText": texts["noPatrons"], "noRankText": texts["noRank"],
         "rankResultText": texts["rankResult"],
         "certTitle": texts["certTitle"], "certSub": texts["certSub"], "certBody": texts["certBody"],
@@ -330,10 +355,9 @@ def faith_page(f):
 """ + tasbih_html + """
 <div class="card" id="wall">
 <h2 class="sec">""" + f["wall_h2"] + """</h2>
-<p class="sub">""" + f["wall_sub"] + """</p>
-<label for="wish-text">""" + f["wall_label"] + """</label>
-<textarea id="wish-text" maxlength="120" placeholder=\"""" + f["wall_ph"] + """\"></textarea>
-<button class="btn2" id="hang-btn">""" + f["hang_btn"] + """</button>
+<p class="sub">""" + texts["presetSub"] + """</p>
+<div class="preset-box" id="preset-list"></div>
+<button class="btn2" id="preset-refresh">""" + texts["refresh"] + """</button>
 <div class="wall" id="wall-list"></div>
 </div>
 
@@ -363,6 +387,21 @@ def faith_page(f):
 <a class="btn2" id="share-wa" target="_blank" rel="noopener">WhatsApp</a>
 <button class="btn2" id="share-copy">Copy Link</button>
 </div>
+</div>
+
+<div class="card patron-card" id="patron-form">
+<h2 class="sec">""" + texts["patronH"] + """</h2>
+<p class="sub">""" + texts["patronSub"] + """</p>
+<label for="patron-name">""" + texts["patronName"] + """</label>
+<input id="patron-name" maxlength="30">
+<label for="patron-text">""" + texts["patronText"] + """</label>
+<textarea id="patron-text" maxlength="120"></textarea>
+<label for="patron-chain">Network / 网络</label>
+<select id="patron-chain"><option value="trc20">USDT · TRC20 (Tron)</option><option value="erc20">USDT · ERC20 (Ethereum)</option></select>
+<label for="patron-txid">""" + texts["patronTxid"] + """</label>
+<input id="patron-txid" maxlength="80" placeholder="e.g. 4f2a9c…">
+<button class="btn" id="patron-btn">""" + texts["patronBtn"] + """</button>
+<div class="rank-result" id="patron-result"></div>
 </div>
 
 <div class="card" id="patrons">

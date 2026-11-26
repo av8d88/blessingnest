@@ -73,3 +73,19 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;bord
 .share-row{display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}
 .cert-box{display:none;margin-top:18px;text-align:center}
 .cert-box.show{display:block}
+/* preset picker */
+.preset-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 6px}
+@media(max-width:600px){.preset-box{grid-template-columns:1fr}}
+.preset-chip{background:#1c0c0e;border:1px solid var(--line);border-radius:22px;padding:11px 16px;color:var(--ink);font-size:14.5px;cursor:pointer;font-family:inherit;text-align:left;transition:.15s}
+.preset-chip:hover{border-color:var(--gold);color:var(--gold)}
+.preset-chip.sent{border-color:var(--gold);color:var(--gold);opacity:.7;cursor:default}
+/* patron golden card */
+.wish.patron{background:linear-gradient(135deg,#2c1e08,#1c1206);border:1px solid var(--gold2);border-left:4px solid var(--gold);position:relative}
+.wish.patron .crown{position:absolute;top:10px;right:12px;font-size:18px}
+.wish.patron .pamount{color:var(--gold);font-weight:700;margin-left:8px}
+.patron-card{border:1px solid var(--gold2)}
+/* amen button */
+.amen-btn{margin-top:8px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:16px;padding:4px 14px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.amen-btn:hover{border-color:var(--gold);color:var(--gold)}
+.amen-btn:disabled{opacity:.55;cursor:default}
+.amen-btn span{color:var(--gold)}
