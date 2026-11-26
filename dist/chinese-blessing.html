@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>祈福阁 — 在线点灯祈福 · 每日一签 · 随喜功德 | BlessingNest</title>
+<meta name="description" content="祈福阁中文版：在线点一盏平安灯，抽一支灵签，写下心愿挂上祈福墙。随喜功德支持 USDT（TRC20/ERC20），心意直达，全程匿名。">
+<link rel="canonical" href="https://blessingnest.pages.dev/chinese-blessing">
+<meta property="og:title" content="祈福阁 — 在线点灯祈福 · 每日一签 · 随喜功德 | BlessingNest">
+<meta property="og:description" content="祈福阁中文版：在线点一盏平安灯，抽一支灵签，写下心愿挂上祈福墙。随喜功德支持 USDT（TRC20/ERC20），心意直达，全程匿名。">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="assets/style.css">
+<style>:root{--bg:#14080a; --bg2:#1f0d10; --card:#241012; --line:#3d1d20; --gold:#e8c15a; --gold2:#c9a227; --red:#c0362c; --ink:#f2e6d0; --muted:#b39a86;}</style>
+</head><body>
+<header>
+<div class="logo">祈 福 阁<small>灯明一处，愿达十方。</small></div>
+</header>
+<nav class="nav">
+<a href="./">All Traditions</a><a href="#light">Light</a><a href="#verse">Daily</a><a href="#wall">Wall</a><a href="#donate">Give</a>
+</nav>
+<main class="wrap">
+<div class="card" id="light">
+<h2 class="sec">点 灯 祈 福</h2>
+<p class="sub">为你在乎的人点一盏灯。</p>
+<div class="candle-stage" id="stage">
+<div class="candle"><div class="flame"></div><div class="wick"></div><div class="stick"></div></div>
+</div>
+<label for="wish-name">为谁祈福（可留空）</label>
+<input id="wish-name" maxlength="60" placeholder="例如：家人平安 / 自己 / 老板发财">
+<button class="btn" id="light-btn">点一盏灯</button>
+<p class="counter">你已在祈福阁点亮 <b id="my-count">0</b> 盏灯 · 长明不息</p>
+</div>
+
+<div class="card" id="verse">
+<h2 class="sec">每 日 一 签</h2>
+<p class="sub">净手静心，默念所求，然后抽签。每日首签最灵。</p>
+<button class="btn" id="draw-btn">虔诚抽签</button>
+<div class="stick-result" id="verse-result">
+<span class="stick-level" id="verse-ref"></span>
+<div class="stick-poem" id="verse-text"></div>
+<p class="stick-mean" id="verse-mean"></p>
+<p class="sub" style="margin-top:14px"><a href="#donate">随 喜 功 德 →</a></p>
+</div>
+</div>
+
+<div class="card" id="wall">
+<h2 class="sec">祈 福 墙</h2>
+<p class="sub">把心愿挂在这里，灯火替你记得。</p>
+<label for="wish-text">你的心愿（30 字以内）</label>
+<textarea id="wish-text" maxlength="120" placeholder="愿所求皆如愿，所行化坦途。"></textarea>
+<button class="btn2" id="hang-btn">挂上祈福墙</button>
+<div class="wall" id="wall-list"></div>
+</div>
+
+<div class="card" id="donate">
+<h2 class="sec">随 喜 功 德</h2>
+<p class="sub">阁中灯火，赖十方善信添油。若此处曾安你心，欢迎随喜 —— 多少皆是功德。</p>
+<div class="donate-grid">
+<div class="donate-card">
+<h3>USDT · TRC20</h3>
+<small>Tron network · low fees · recommended</small>
+<div class="qr" id="qr-trc"></div>
+<div class="addr" id="addr-trc">(address opening soon)</div>
+<button class="btn2" data-copy="addr-trc">复制地址</button>
+</div>
+<div class="donate-card">
+<h3>USDT · ERC20</h3>
+<small>Ethereum network · higher fees</small>
+<div class="qr" id="qr-erc"></div>
+<div class="addr" id="addr-erc">(address opening soon)</div>
+<button class="btn2" data-copy="addr-erc">复制地址</button>
+</div>
+</div>
+<p class="sub" style="margin-top:16px">随喜完全自愿 · 不随喜照样灵 · 转账请认准网络，转错网络功德难寻</p>
+</div>
+</main>
+<footer>
+BlessingNest · a quiet digital sanctuary ·
+<a href="./">All Traditions</a><br>
+Sisters: <a href="https://paychecknest.pages.dev/">PaycheckNest</a> ·
+<a href="https://loannest.pages.dev/">LoanNest</a> ·
+<a href="https://devnest-5nm.pages.dev/">DevNest</a><br>
+An independent spiritual-comfort page. Not affiliated with any religious organization.
+</footer>
+<script>window.FAITH = {"id": "chinese", "candleWallText": "为「{name}」点了一盏平安灯", "youName": "你", "seedDate": "开阁首日", "onceDailyText": "一日一签，心诚则灵。明日再来。", "copyText": "复制地址", "copiedText": "已复制 · 功德+1", "addrPendingText": "地址尚未公布", "verses": [{"ref": "上上签", "text": "云开见月正分明\n不须进退问前程\n婚姻皆由天注定\n和合清吉万事成", "mean": "签解：时运已至，所求皆顺，放胆去做。"}, {"ref": "上上签", "text": "枯木逢春尽发新\n花香叶茂蝶来频\n桃源竞斗千红紫\n一叶渔舟误入津", "mean": "签解：沉寂已久，转机已现，把握当下。"}, {"ref": "上上签", "text": "财如晓日腾云起\n利似春潮带雨来\n若问前程多大吉\n一帆风顺到蓬莱", "mean": "签解：财运亨通之兆，宜进取不宜守。"}, {"ref": "上吉签", "text": "静坐常思己过\n闲谈莫论人非\n能受苦方为志士\n肯吃亏不是痴人", "mean": "签解：修身养性，厚道之人必有后福。"}, {"ref": "上吉签", "text": "好把愁眉须展开\n大才大用荐将来\n一条大路平如掌\n凡有施为总称怀", "mean": "签解：才华将被看见，大胆展示自己。"}, {"ref": "中吉签", "text": "事不三思终有悔\n人能百忍自无忧\n守得清心方为道\n退一步时天更阔", "mean": "签解：三思后行，忍耐是最近的上策。"}, {"ref": "中吉签", "text": "行舟风顺正无疑\n遇有旋涡把舵移\n自此遂心随意去\n管取前途得意归", "mean": "签解：大局顺遂，小处留意，可保无虞。"}, {"ref": "中吉签", "text": "不必著意求佳景\n自有奇逢应早春\n若问酒家何处有\n牧童遥指杏花村", "mean": "签解：刻意难求，无心反得，顺其自然。"}, {"ref": "中下签", "text": "眼前风波多险阻\n宜守不宜进为佳\n待得云开雾散日\n方显英雄本色时", "mean": "签解：暂避锋芒，静观其变，守成为上。"}, {"ref": "转运签", "text": "山重水复疑无路\n柳暗花明又一村\n莫道前途无知己\n天下谁人不识君", "mean": "签解：困境将尽，转机即至，坚持就是答案。"}, {"ref": "转运签", "text": "否极泰来咫尺间\n渐渐君子出于山\n若逢虎兔佳音信\n立志忙中事即闲", "mean": "签解：最坏的时候正在过去，好运在敲门。"}, {"ref": "上上签", "text": "一签抽出万事明\n东南西北任君行\n福禄寿喜财皆至\n合家安康乐太平", "mean": "签解：诸事大吉，做什么成什么，珍惜当下。"}], "seeds": [{"t": "愿父母身体健康，岁岁平安。", "n": "匿名善信"}, {"t": "愿所求皆如愿，所行化坦途。", "n": "过路人"}, {"t": "愿钱包渐鼓，烦恼渐消。", "n": "一位不愿透露姓名的老板"}]};
+window.ADDR = {"trc20": "", "erc20": ""};</script>
+<script src="assets/qrcode.min.js"></script>
+<script src="assets/app.js"></script>
+</body></html>

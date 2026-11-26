@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Online Candle & Blessing — Daily Psalm | BlessingNest</title>
+<meta name="description" content="Free online Jewish blessing corner: light a virtual candle, receive a verse from Psalms, leave a bracha on the wall, and give tzedakah via USDT.">
+<link rel="canonical" href="https://blessingnest.pages.dev/jewish-blessing">
+<meta property="og:title" content="Online Candle & Blessing — Daily Psalm | BlessingNest">
+<meta property="og:description" content="Free online Jewish blessing corner: light a virtual candle, receive a verse from Psalms, leave a bracha on the wall, and give tzedakah via USDT.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="assets/style.css">
+<style>:root{--bg:#0a1424; --bg2:#0e1c33; --card:#12243f; --line:#24406b; --gold:#e8c15a; --gold2:#c9a227; --red:#3f6fb5; --ink:#e8effc; --muted:#93a9cc;}</style>
+</head><body>
+<header>
+<div class="logo">Online Candle & Blessing<small>A little light dispels much darkness.</small></div>
+</header>
+<nav class="nav">
+<a href="./">All Traditions</a><a href="#light">Light</a><a href="#verse">Daily</a><a href="#wall">Wall</a><a href="#donate">Give</a>
+</nav>
+<main class="wrap">
+<div class="card" id="light">
+<h2 class="sec">Light a Candle</h2>
+<p class="sub">For the memory of a loved one, for healing, for peace — light a candle.</p>
+<div class="candle-stage" id="stage">
+<div class="candle"><div class="flame"></div><div class="wick"></div><div class="stick"></div></div>
+</div>
+<label for="wish-name">Who is this candle for? (optional)</label>
+<input id="wish-name" maxlength="60" placeholder="e.g. refuah shlema for... / in memory of...">
+<button class="btn" id="light-btn">Light a Candle</button>
+<p class="counter">You have lit <b id="my-count">0</b> candle(s) here · ken yehi ratzon</p>
+</div>
+
+<div class="card" id="verse">
+<h2 class="sec">Verse of the Day</h2>
+<p class="sub">Settle your spirit, then receive today's verse.</p>
+<button class="btn" id="draw-btn">Receive a Verse</button>
+<div class="stick-result" id="verse-result">
+<span class="stick-level" id="verse-ref"></span>
+<div class="stick-poem" id="verse-text"></div>
+<p class="stick-mean" id="verse-mean"></p>
+<p class="sub" style="margin-top:14px"><a href="#donate">Tzedakah →</a></p>
+</div>
+</div>
+
+<div class="card" id="wall">
+<h2 class="sec">Blessing Wall</h2>
+<p class="sub">Leave a bracha here. Blessings multiply when spoken aloud.</p>
+<label for="wish-text">Your blessing (120 chars max)</label>
+<textarea id="wish-text" maxlength="120" placeholder="May you be blessed and guarded..."></textarea>
+<button class="btn2" id="hang-btn">Pin to Blessing Wall</button>
+<div class="wall" id="wall-list"></div>
+</div>
+
+<div class="card" id="donate">
+<h2 class="sec">Tzedakah</h2>
+<p class="sub">The world stands on Torah, service, and acts of lovingkindness. Your tzedakah keeps these candles lit.</p>
+<div class="donate-grid">
+<div class="donate-card">
+<h3>USDT · TRC20</h3>
+<small>Tron network · low fees · recommended</small>
+<div class="qr" id="qr-trc"></div>
+<div class="addr" id="addr-trc">(address opening soon)</div>
+<button class="btn2" data-copy="addr-trc">Copy address</button>
+</div>
+<div class="donate-card">
+<h3>USDT · ERC20</h3>
+<small>Ethereum network · higher fees</small>
+<div class="qr" id="qr-erc"></div>
+<div class="addr" id="addr-erc">(address opening soon)</div>
+<button class="btn2" data-copy="addr-erc">Copy address</button>
+</div>
+</div>
+<p class="sub" style="margin-top:16px">Giving is completely voluntary · Double-check the network before sending</p>
+</div>
+</main>
+<footer>
+BlessingNest · a quiet digital sanctuary ·
+<a href="./">All Traditions</a><br>
+Sisters: <a href="https://paychecknest.pages.dev/">PaycheckNest</a> ·
+<a href="https://loannest.pages.dev/">LoanNest</a> ·
+<a href="https://devnest-5nm.pages.dev/">DevNest</a><br>
+An independent spiritual-comfort page. Not affiliated with any religious organization.
+</footer>
+<script>window.FAITH = {"id": "jewish", "candleWallText": "lit a candle for \"{name}\"", "youName": "You", "seedDate": "Opening Day", "onceDailyText": "One verse a day, taken to heart. Return tomorrow.", "copyText": "Copy address", "copiedText": "Copied · Toda raba", "addrPendingText": "Opening soon", "verses": [{"ref": "Psalm 121:1-2", "text": "I lift up my eyes to the mountains — where does my help come from? My help comes from the LORD, the Maker of heaven and earth.", "mean": "Help has a source older than the mountains."}, {"ref": "Psalm 23:4", "text": "Even though I walk through the valley of the shadow of death, I will fear no evil, for You are with me.", "mean": "The valley is a passage, not an address."}, {"ref": "Numbers 6:24-26", "text": "May the LORD bless you and keep you; may He make His face shine upon you; may He lift up His countenance to you and give you peace.", "mean": "The oldest blessing still working. Receive it."}, {"ref": "Pirkei Avot 2:16", "text": "It is not your duty to finish the work, but neither are you free to desist from it.", "mean": "You are not responsible for finishing — only for not stopping."}, {"ref": "Pirkei Avot 4:1", "text": "Who is wise? One who learns from every person.", "mean": "Today's teacher may arrive in disguise."}, {"ref": "Hillel, Pirkei Avot 1:14", "text": "If I am not for myself, who will be for me? If I am only for myself, what am I? And if not now, when?", "mean": "Three questions. One life. Answer the last one today."}, {"ref": "Psalm 90:12", "text": "Teach us to number our days, that we may gain a heart of wisdom.", "mean": "Counting days is how days start to count."}, {"ref": "Gam Zu L'Tovah", "text": "This too is for the good. — Nachum Ish Gamzu", "mean": "The hardest faith is retrospective. Trust the edit."}], "seeds": [{"t": "Refuah shlema for my grandmother. Ken yehi ratzon.", "n": "David"}, {"t": "In memory of those we lost. May their memory be a blessing.", "n": "Anonymous"}, {"t": "For peace in Jerusalem and everywhere. Amen.", "n": "Leah"}]};
+window.ADDR = {"trc20": "", "erc20": ""};</script>
+<script src="assets/qrcode.min.js"></script>
+<script src="assets/app.js"></script>
+</body></html>
