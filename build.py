@@ -7,7 +7,7 @@ DIST = os.path.join(ROOT, "dist")
 SITE_URL = "https://blessingnest.pages.dev"
 INDEXNOW_KEY = "8f3e2a1c9b4d6e8f0a2c4e6b8d0f2a4c"
 ADDR_TRC20 = "TJ7xmAQo2qUP3MTjKhag3zhRtXKg3pPP9H"
-ADDR_ERC20 = ""
+ADDR_ERC20 = "0xffed67d9c05208F171cf6b7823a0CB0B0Ad496Cd"
 
 # ---------------- faith configs ----------------
 FAITHS = [
