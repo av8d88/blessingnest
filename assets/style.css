@@ -60,3 +60,16 @@ label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;text-ali
 .addr{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--ink);word-break:break-all;background:#120608;border-radius:8px;padding:8px 10px;margin-top:10px}
 footer{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;border-top:1px solid var(--line);margin-top:40px}
 .hidden{display:none}
+/* patron wall */
+.patron-top{display:flex;justify-content:center;gap:14px;margin:18px 0 6px;flex-wrap:wrap}
+.patron-top-item{background:linear-gradient(180deg,#2c1410,#1c0c0e);border:1px solid var(--gold2);border-radius:12px;padding:14px 18px;min-width:150px;display:flex;flex-direction:column;gap:3px}
+.patron-top-item .medal{font-size:26px}
+.patron-top-item b{font-size:14px;color:var(--ink)}
+.patron-top-item .amt{color:var(--gold);font-weight:700;font-size:18px}
+.patron-top-item .tier{font-size:12px;color:var(--muted);letter-spacing:1px}
+.rank-row{display:flex;gap:10px;margin-top:14px}
+.rank-row input{flex:1}
+.rank-result{margin-top:12px;color:var(--gold);font-size:15px}
+.share-row{display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.cert-box{display:none;margin-top:18px;text-align:center}
+.cert-box.show{display:block}

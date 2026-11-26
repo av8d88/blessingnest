@@ -231,13 +231,58 @@ dict(
   ]),
 ]
 
+# ---------------- federation (each faith = standalone site) ----------------
+FED = {
+  "christian": {"url": "https://online-prayer-room.pages.dev", "project": "online-prayer-room"},
+  "muslim":    {"url": "https://dua-corner.pages.dev",          "project": "dua-corner"},
+  "hindu":     {"url": "https://light-a-diya.pages.dev",        "project": "light-a-diya"},
+  "jewish":    {"url": "https://blessing-candle.pages.dev",     "project": "blessing-candle"},
+  "buddhist":  {"url": "https://dharma-light.pages.dev",        "project": "dharma-light"},
+  "chinese":   {"url": "https://blessingnest.pages.dev",        "project": "blessingnest"},
+}
+FED_LINKS = [("christian", "✝ Prayer Room"), ("muslim", "☪ Dua Corner"), ("hindu", "🪔 Diya"),
+             ("jewish", "✡ Blessing Candle"), ("buddhist", "☸ Dharma Light"), ("chinese", "🏮 祈福阁")]
+
+def fed_footer_links(current):
+    return " · ".join('<a href="%s/">%s</a>' % (FED[k]["url"], label)
+                      for k, label in FED_LINKS if k != current)
+
 # ---------------- templates ----------------
 def faith_page(f):
+    is_zh = f["lang"] == "zh-CN"
+    if is_zh:
+        tiers = [{"min": 0, "name": "随喜善心"}, {"min": 5, "name": "添油善信"},
+                 {"min": 20, "name": "长明灯主"}, {"min": 100, "name": "金身功德主"}]
+        texts = dict(noPatrons="虚位以待 —— 第一位功德主会是你吗？", noRank="暂未查到该地址的随喜记录",
+                     rankResult="你的累计功德 {amount} · 段位：{tier}",
+                     certTitle="点 灯 证 书", certSub="祈福阁 BlessingNest 敬呈",
+                     certBody="兹证明 {name} 于此点灯祈福 · {date}", certFile="blessing-certificate",
+                     share="我在祈福阁点了一盏灯，为重要的人祈福 🏮", linkCopied="链接已复制 · 功德+1",
+                     patronsH="功 德 榜", patronsSub="链上真实随喜 · 自动上榜 · 童叟无欺",
+                     rankH="查你的功德段位", rankPh="粘贴你的钱包地址（T... 或 0x...）", rankBtn="查询段位",
+                     certBtn="下载我的点灯证书", rankRank="段位")
+    else:
+        tiers = [{"min": 0, "name": "Kind Heart"}, {"min": 5, "name": "Oil Giver"},
+                 {"min": 20, "name": "Temple Light"}, {"min": 100, "name": "Golden Patron"}]
+        texts = dict(noPatrons="The wall awaits its first patron — could it be you?",
+                     noRank="No giving record found for this address yet",
+                     rankResult="Your total giving {amount} · Rank: {tier}",
+                     certTitle="Certificate of Light", certSub="presented by BlessingNest",
+                     certBody="This certifies that {name} lit a light here · {date}", certFile="certificate-of-light",
+                     share="I just lit a candle online for someone I care about 🕯️", linkCopied="Link copied",
+                     patronsH="Patron Wall", patronsSub="Verified on-chain giving · updated automatically",
+                     rankH="Check Your Patron Rank", rankPh="Paste your wallet address (T... or 0x...)", rankBtn="Check Rank",
+                     certBtn="Download My Certificate", rankRank="Rank")
+
     config = {
         "id": f["id"], "candleWallText": f["candle_wall_text"], "youName": f["you_name"],
         "seedDate": f["seed_date"], "onceDailyText": f["once_text"],
         "copyText": f["copy_text"], "copiedText": f["copied_text"], "addrPendingText": f["pending_text"],
         "verses": f["verses"], "seeds": f["seeds"],
+        "tiers": tiers, "noPatronsText": texts["noPatrons"], "noRankText": texts["noRank"],
+        "rankResultText": texts["rankResult"],
+        "certTitle": texts["certTitle"], "certSub": texts["certSub"], "certBody": texts["certBody"],
+        "certFile": texts["certFile"], "shareText": texts["share"], "linkCopiedText": texts["linkCopied"],
     }
     tasbih_html = ""
     if f.get("tasbih"):
@@ -255,7 +300,7 @@ def faith_page(f):
 <div class="logo">""" + f["h1"] + """<small>""" + f["tagline"] + """</small></div>
 </header>
 <nav class="nav">
-<a href="./">All Traditions</a><a href="#light">Light</a><a href="#verse">Daily</a><a href="#wall">Wall</a><a href="#donate">Give</a>
+<a href="#light">Light</a><a href="#verse">Daily</a><a href="#wall">Wall</a><a href="#donate">Give</a><a href="#patrons">Patrons</a>
 </nav>
 <main class="wrap">
 <div class="card" id="light">
@@ -268,6 +313,7 @@ def faith_page(f):
 <input id="wish-name" maxlength="60" placeholder=\"""" + f["wish_ph"] + """\">
 <button class="btn" id="light-btn">""" + f["light_btn"] + """</button>
 <p class="counter">""" + (f["counter_text"] % '<b id="my-count">0</b>') + """</p>
+<div class="cert-box" id="cert-box"><button class="btn2" id="cert-btn">""" + texts["certBtn"] + """</button></div>
 </div>
 
 <div class="card" id="verse">
@@ -311,11 +357,30 @@ def faith_page(f):
 </div>
 </div>
 <p class="sub" style="margin-top:16px">""" + f["donate_note"] + """</p>
+<div class="share-row">
+<a class="btn2" id="share-x" target="_blank" rel="noopener">Share on X</a>
+<a class="btn2" id="share-tg" target="_blank" rel="noopener">Telegram</a>
+<a class="btn2" id="share-wa" target="_blank" rel="noopener">WhatsApp</a>
+<button class="btn2" id="share-copy">Copy Link</button>
+</div>
+</div>
+
+<div class="card" id="patrons">
+<h2 class="sec">""" + texts["patronsH"] + """</h2>
+<p class="sub">""" + texts["patronsSub"] + """</p>
+<div class="patron-top" id="patron-top"></div>
+<div class="wall" id="patron-list"></div>
+<h3 style="color:var(--gold);font-size:16px;margin-top:26px">""" + texts["rankH"] + """</h3>
+<div class="rank-row">
+<input id="rank-addr" placeholder=\"""" + texts["rankPh"] + """\">
+<button class="btn2" id="rank-btn" style="margin:0">""" + texts["rankBtn"] + """</button>
+</div>
+<div class="rank-result" id="rank-result"></div>
 </div>
 </main>
 <footer>
-BlessingNest · a quiet digital sanctuary ·
-<a href="./">All Traditions</a><br>
+BlessingNest · a quiet digital sanctuary<br>
+""" + fed_footer_links(f["id"]) + """<br>
 Sisters: <a href="https://paychecknest.pages.dev/">PaycheckNest</a> ·
 <a href="https://loannest.pages.dev/">LoanNest</a> ·
 <a href="https://devnest-5nm.pages.dev/">DevNest</a><br>
@@ -333,95 +398,37 @@ window.ADDR = """ + json.dumps({"trc20": ADDR_TRC20, "erc20": ADDR_ERC20}) + """
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>""" + f["title"] + """</title>
 <meta name="description" content=\"""" + f["desc"] + """\">
-<link rel="canonical" href=\"""" + SITE_URL + "/" + f["path"] + """\">
+<link rel="canonical" href=\"""" + FED[f["id"]]["url"] + """/\">
 <meta property="og:title" content=\"""" + f["title"] + """\">
 <meta property="og:description" content=\"""" + f["desc"] + """\">
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="assets/style.css">
 <style>:root{""" + f["theme"] + """}</style>
 </head><body>"""
-    return (f["path"] + ".html", head + body)
-
-def hub_page():
-    cards = []
-    info = [
-        ("christian-prayer", "✝", "Christian Prayer Room", "Candles, Psalms & daily verses"),
-        ("muslim-dua", "☪", "Muslim Dua Corner", "Daily dua & digital tasbih"),
-        ("hindu-blessing", "🪔", "Hindu Diya & Blessing", "Light a diya, daily Gita wisdom"),
-        ("jewish-blessing", "✡", "Jewish Candle & Blessing", "Candle lighting & daily Psalm"),
-        ("buddhist-blessing", "☸", "Buddhist Blessing", "Candles & Dhammapada verses"),
-        ("chinese-blessing", "🏮", "祈福阁", "点灯祈福 · 每日一签 · 功德随喜"),
-    ]
-    for path, icon, name, sub in info:
-        cards.append('<a class="tile" href="%s"><span style="font-size:30px">%s</span><b>%s</b><small>%s</small></a>' % (path, icon, name, sub))
-    body = """
-<div class="hero" style="text-align:center;padding:60px 0 20px">
-<div style="font-size:46px;letter-spacing:6px;color:var(--gold);font-weight:700">BLESSINGNEST</div>
-<p style="color:var(--muted);margin-top:12px;font-size:17px">A quiet digital sanctuary for every tradition.<br>Light a candle. Say a prayer. Leave a blessing.</p>
-</div>
-<div class="grid hub-grid">""" + "".join(cards) + """</div>
-<div class="card content" style="margin-top:30px">
-<p style="color:var(--muted);font-size:14px;text-align:center">
-Every tradition here shares one flame. Whatever you call it — prayer, dua, mantra, bracha, blessing, 祈福 —
-the act of pausing to wish someone well is universal.<br><br>
-BlessingNest is an independent spiritual-comfort project, not affiliated with any religious organization.<br>
-Sisters: <a href="https://paychecknest.pages.dev/">PaycheckNest</a> ·
-<a href="https://loannest.pages.dev/">LoanNest</a> ·
-<a href="https://devnest-5nm.pages.dev/">DevNest</a></p>
-</div>"""
-    head = """<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BlessingNest — Online Prayer, Dua, Blessing & Candle Lighting for Every Faith</title>
-<meta name="description" content="A quiet digital sanctuary: light a candle, receive a daily verse, and leave a blessing — Christian, Muslim, Hindu, Jewish, Buddhist and Chinese traditions. Optional USDT giving.">
-<link rel="canonical" href=\"""" + SITE_URL + """/\">
-<meta property="og:title" content="BlessingNest — Online Sanctuary for Every Faith">
-<meta property="og:description" content="Light a candle. Say a prayer. Leave a blessing.">
-<meta property="og:type" content="website">
-<link rel="stylesheet" href="assets/style.css">
-<style>
-:root{--bg:#120c08;--bg2:#1c120a;--card:#221610;--line:#3d2a1c;--gold:#e8c15a;--gold2:#c9a227;--ink:#f2e6d0;--muted:#b39a86}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;max-width:760px;margin:20px auto;padding:0 20px}
-.tile{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 16px;color:var(--ink);text-decoration:none;text-align:center;transition:.15s}
-.tile:hover{border-color:var(--gold);transform:translateY(-2px)}
-.tile b{font-size:16px}
-.tile small{color:var(--muted)}
-.wrap{max-width:760px;margin:0 auto;padding:0 20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
-a{color:var(--gold)}
-</style>
-</head><body>"""
-    return ("index.html", head + body + "</body></html>")
+    return ("index.html", head + body)
 
 def main():
-    os.makedirs(DIST, exist_ok=True)
-    shutil.copytree(os.path.join(ROOT, "assets"), os.path.join(DIST, "assets"), dirs_exist_ok=True)
-
-    pages = [hub_page()]
     for f in FAITHS:
-        pages.append(faith_page(f))
+        fed = FED[f["id"]]
+        site_dir = os.path.join(ROOT, "sites", f["id"])
+        os.makedirs(site_dir, exist_ok=True)
+        shutil.copytree(os.path.join(ROOT, "assets"), os.path.join(site_dir, "assets"), dirs_exist_ok=True)
 
-    for filename, html in pages:
-        with open(os.path.join(DIST, filename), "w", encoding="utf-8") as fp:
+        filename, html = faith_page(f)
+        with open(os.path.join(site_dir, filename), "w", encoding="utf-8") as fp:
             fp.write(html)
 
-    urls = [SITE_URL + ("/" if fn == "index.html" else "/" + fn[:-5]) for fn, _ in pages]
-    sitemap = ['<?xml version="1.0" encoding="UTF-8"?>',
-               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for u in urls:
-        sitemap.append("<url><loc>%s</loc></url>" % u)
-    sitemap.append("</urlset>")
-    with open(os.path.join(DIST, "sitemap.xml"), "w", encoding="utf-8") as fp:
-        fp.write("\n".join(sitemap))
-    with open(os.path.join(DIST, "robots.txt"), "w", encoding="utf-8") as fp:
-        fp.write("User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % SITE_URL)
-    with open(os.path.join(DIST, INDEXNOW_KEY + ".txt"), "w", encoding="utf-8") as fp:
-        fp.write(INDEXNOW_KEY)
-    with open(os.path.join(DIST, "googlea71fab601229e434.html"), "w", encoding="utf-8") as fp:
-        fp.write("google-site-verification: googlea71fab601229e434.html")
-
-    print("Built %d pages -> %s" % (len(pages), DIST))
+        with open(os.path.join(site_dir, "sitemap.xml"), "w", encoding="utf-8") as fp:
+            fp.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                     "<url><loc>%s/</loc></url>\n</urlset>" % fed["url"])
+        with open(os.path.join(site_dir, "robots.txt"), "w", encoding="utf-8") as fp:
+            fp.write("User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % fed["url"])
+        with open(os.path.join(site_dir, INDEXNOW_KEY + ".txt"), "w", encoding="utf-8") as fp:
+            fp.write(INDEXNOW_KEY)
+        with open(os.path.join(site_dir, "googlea71fab601229e434.html"), "w", encoding="utf-8") as fp:
+            fp.write("google-site-verification: googlea71fab601229e434.html")
+        print("Built %s -> %s (%s)" % (f["id"], site_dir, fed["url"]))
 
 if __name__ == "__main__":
     main()
