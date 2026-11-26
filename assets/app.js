@@ -157,12 +157,20 @@
       markVoted(id);
     }).catch(function () { btn.disabled = false; });
   }
+  // render seeds immediately — never leave the wall blank waiting on the network
+  renderWall();
   if (window.fetch) {
-    fetch(WALL_API).then(function (r) { return r.json(); }).then(function (d) {
-      wallItems = (d.wishes || []);
-      renderWall();
-    }).catch(function () { renderWall(); });
-  } else { renderWall(); }
+    var wallCtrl = ("AbortController" in window) ? new AbortController() : null;
+    var wallTimer = wallCtrl ? setTimeout(function () { wallCtrl.abort(); }, 6000) : null;
+    fetch(WALL_API, wallCtrl ? { signal: wallCtrl.signal } : {})
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (wallTimer) clearTimeout(wallTimer);
+        wallItems = (d.wishes || []);
+        renderWall();
+      })
+      .catch(function () { if (wallTimer) clearTimeout(wallTimer); });
+  }
 
   // ===== Blessing modal: preset picker + confirm (free: 3/day, multi-dim limited) =====
   var FP = (function () {
