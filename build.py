@@ -275,7 +275,8 @@ def faith_page(f):
                      patronFail="验真失败，请检查网络选择和交易哈希",
                      rankLoading="正在查询链上记录，请稍候…", rankTotal="累计随喜",
                      rankDateCol="日期", rankAmountCol="金额", rankShare="分享我的段位",
-                     rankShareBody="我在祈福阁的累计随喜 {amount}，段位「{tier}」🏮 来查你的功德段位")
+                     rankShareBody="我在祈福阁的累计随喜 {amount}，段位「{tier}」🏮 来查你的功德段位",
+                     quotaText="今日免费祈福已用完（3次/日）· 功德主自定义卡不限次数")
     else:
         tiers = [{"min": 0, "name": "Kind Heart"}, {"min": 5, "name": "Oil Giver"},
                  {"min": 20, "name": "Temple Light"}, {"min": 100, "name": "Golden Patron"}]
@@ -298,7 +299,8 @@ def faith_page(f):
                      patronFail="Verification failed — check the network and TXID",
                      rankLoading="Querying the chain, one moment…", rankTotal="Total giving",
                      rankDateCol="Date", rankAmountCol="Amount", rankShare="Share my rank",
-                     rankShareBody="My total giving at BlessingNest: {amount} · Rank: {tier} 🕯️ Check your rank")
+                     rankShareBody="My total giving at BlessingNest: {amount} · Rank: {tier} 🕯️ Check your rank",
+                     quotaText="Daily free blessings used up (3/day) · patron cards are unlimited")
 
     amen_labels = {"christian": "Amen 🙏", "muslim": "Amin 🤲", "hindu": "Shubh 🙏",
                    "jewish": "Amen ✡️", "buddhist": "Sadhu 🙏", "chinese": "帮祈 🙏"}
@@ -319,6 +321,7 @@ def faith_page(f):
         "rankLoadingText": texts["rankLoading"], "rankTotalText": texts["rankTotal"],
         "rankDateCol": texts["rankDateCol"], "rankAmountCol": texts["rankAmountCol"],
         "rankShareText": texts["rankShare"], "rankShareBody": texts["rankShareBody"],
+        "quotaText": texts["quotaText"],
         "tiers": tiers, "noPatronsText": texts["noPatrons"], "noRankText": texts["noRank"],
         "rankResultText": texts["rankResult"],
         "certTitle": texts["certTitle"], "certSub": texts["certSub"], "certBody": texts["certBody"],

@@ -113,7 +113,24 @@
     }).catch(function () { renderWall(); });
   } else { renderWall(); }
 
-  // ===== Blessing modal: preset picker + confirm =====
+  // ===== Blessing modal: preset picker + confirm (free: 3/day, multi-dim limited) =====
+  var FP = (function () {
+    var raw = [navigator.userAgent, navigator.language, (new Date()).getTimezoneOffset(),
+      screen.width + "x" + screen.height].join("|");
+    var h = 0;
+    for (var i = 0; i < raw.length; i++) h = (h * 31 + raw.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  })();
+  function localDay() {
+    var d = new Date();
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+  function getLocalQuota() {
+    return parseInt(localStorage.getItem("bn_quota_" + F.id + "_" + localDay()) || "0", 10);
+  }
+  function incrLocalQuota() {
+    localStorage.setItem("bn_quota_" + F.id + "_" + localDay(), String(getLocalQuota() + 1));
+  }
   var pickedPreset = null;
   function renderPresets() {
     var box = $("preset-list");
@@ -160,16 +177,26 @@
   var blessSubmit = $("bless-submit");
   if (blessSubmit) blessSubmit.addEventListener("click", function () {
     if (!pickedPreset) return;
+    if (getLocalQuota() >= 3) {
+      $("bless-picked").textContent = F.quotaText;
+      return;
+    }
     blessSubmit.disabled = true;
     fetch(WALL_API, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "free", text: pickedPreset })
+      body: JSON.stringify({ type: "free", text: pickedPreset, fp: FP })
     }).then(function (r) { return r.json(); }).then(function (d) {
       blessSubmit.disabled = false;
       if (d.wish) {
+        incrLocalQuota();
         wallItems.unshift(d.wish);
         renderWall();
         closeModal();
+      } else if (d.code === "quota") {
+        incrLocalQuota(); // stop hammering from this browser too
+        $("bless-picked").textContent = F.quotaText;
+      } else {
+        $("bless-picked").textContent = d.error || F.quotaText;
       }
     }).catch(function () { blessSubmit.disabled = false; });
   });

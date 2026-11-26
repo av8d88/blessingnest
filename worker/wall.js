@@ -141,11 +141,25 @@ export default {
         // free wishes must come from the preset list
         const presets = (await getPresets(env))[site] || [];
         if (!presets.includes(text)) return json({ error: "free wishes must use preset blessings" }, 400);
+
+        // multi-dimensional daily quota: IP-based + fingerprint-based (3/day each)
+        const day = new Date().toISOString().slice(0, 10);
+        const fp = clean(body.fp, 48);
+        const ipKey = "quota:" + site + ":ip:" + ip + ":" + day;
+        const fpKey = fp ? "quota:" + site + ":fp:" + fp + ":" + day : null;
+        const ipCount = parseInt(await env.WALL.get(ipKey) || "0", 10);
+        const fpCount = fpKey ? parseInt(await env.WALL.get(fpKey) || "0", 10) : 0;
+        if (ipCount >= 3 || fpCount >= 3) {
+          return json({ error: "Daily free blessing limit reached (3/day). Patron cards have no limit.", code: "quota" }, 429);
+        }
+
         const wish = { id: newId(), n: body.name ? clean(body.name, 30) : "Anonymous", t: text,
           d: new Date().toISOString().slice(0, 10), type: "free", amen: 0 };
         list.unshift(wish);
         await env.WALL.put("wishes:" + site, JSON.stringify(list.slice(0, MAX_WISHES)));
-        return json({ ok: true, wish });
+        await env.WALL.put(ipKey, String(ipCount + 1), { expirationTtl: 172800 });
+        if (fpKey) await env.WALL.put(fpKey, String(fpCount + 1), { expirationTtl: 172800 });
+        return json({ ok: true, wish, remaining: 2 - ipCount });
       }
 
       if (type === "patron") {
