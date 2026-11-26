@@ -297,7 +297,43 @@
   }
   renderPatrons();
 
-  // ===== Rank checker + certificate =====
+  // ===== Rank checker: query the ENTERED address's outgoing transfers TO our addresses =====
+  function queryOutgoing(addr) {
+    var jobs = [];
+    if (window.ADDR.trc20) {
+      jobs.push(
+        fetch("https://api.trongrid.io/v1/accounts/" + addr + "/transactions/trc20?only_from=true&limit=200")
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            return (d.data || []).filter(function (t) {
+              return t.token_info && t.token_info.symbol === "USDT" &&
+                t.to === window.ADDR.trc20 && t.type === "Transfer";
+            }).map(function (t) {
+              return { amount: parseInt(t.value, 10) / 1e6, ts: t.block_timestamp, chain: "TRC20" };
+            });
+          }).catch(function () { return []; })
+      );
+    }
+    if (window.ADDR.erc20) {
+      jobs.push(
+        fetch("https://api.ethplorer.io/getAddressHistory/" + addr +
+            "?apiKey=freekey&token=0xdAC17F958D2ee523a2206206994597C13D831ec7&type=transfer&limit=200")
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            return (d.operations || []).filter(function (t) {
+              return t.from && t.from.toLowerCase() === addr.toLowerCase() &&
+                t.to && t.to.toLowerCase() === window.ADDR.erc20.toLowerCase();
+            }).map(function (t) {
+              return { amount: parseFloat(t.value), ts: t.timestamp * 1000, chain: "ERC20" };
+            });
+          }).catch(function () { return []; })
+      );
+    }
+    return Promise.all(jobs).then(function (rs) {
+      return rs.reduce(function (a, b) { return a.concat(b); }, []);
+    });
+  }
+
   function showCert(name, patron) {
     var box = $("cert-box");
     if (!box) return;
@@ -312,18 +348,36 @@
       var addr = $("rank-addr").value.trim();
       var out = $("rank-result");
       if (!addr) return;
-      out.textContent = "…";
-      Promise.all([fetchTrc(), fetchErc()]).then(function (rs) {
-        var mine = rs[0].concat(rs[1]).filter(function (t) {
-          return t.from.toLowerCase() === addr.toLowerCase();
-        });
+      out.innerHTML = '<span class="rank-loading">' + F.rankLoadingText + '</span>';
+      rankBtn.disabled = true;
+      queryOutgoing(addr).then(function (mine) {
+        rankBtn.disabled = false;
         if (!mine.length) { out.textContent = F.noRankText; return; }
+        mine.sort(function (a, b) { return b.ts - a.ts; });
         var total = mine.reduce(function (s, t) { return s + t.amount; }, 0);
         var tier = tierOf(total);
-        out.innerHTML = F.rankResultText
-          .replace("{amount}", "$" + total.toFixed(2))
-          .replace("{tier}", tier.name);
+        var rows = "";
+        mine.slice(0, 8).forEach(function (t) {
+          rows += '<tr><td>' + new Date(t.ts).toLocaleDateString() + '</td>' +
+            '<td>' + t.chain + '</td><td class="num">$' + t.amount.toFixed(2) + '</td></tr>';
+        });
+        out.innerHTML =
+          '<div class="rank-card">' +
+          '<div class="rank-total">' + F.rankTotalText + ' <b>$' + total.toFixed(2) + '</b></div>' +
+          '<div class="rank-tier">' + F.rankRank + ': <b>' + tier.name + '</b></div>' +
+          '<table class="rank-table"><tr><th>' + F.rankDateCol + '</th><th>链</th><th class="num">' + F.rankAmountCol + '</th></tr>' + rows + '</table>' +
+          '<button class="btn2" id="rank-share-x">' + F.rankShareText + '</button>' +
+          '</div>';
         showCert(addr, { name: tier.name, amount: "$" + total.toFixed(2) });
+        var shareBtn = $("rank-share-x");
+        if (shareBtn) {
+          shareBtn.addEventListener("click", function () {
+            var text = F.rankShareBody
+              .replace("{amount}", "$" + total.toFixed(2))
+              .replace("{tier}", tier.name) + " " + location.href;
+            window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text), "_blank");
+          });
+        }
       });
     });
   }

@@ -89,3 +89,14 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;bord
 .amen-btn:hover{border-color:var(--gold);color:var(--gold)}
 .amen-btn:disabled{opacity:.55;cursor:default}
 .amen-btn span{color:var(--gold)}
+/* rank card */
+.rank-card{margin-top:14px;background:linear-gradient(135deg,#2c1e08,#1c1206);border:1px solid var(--gold2);border-radius:12px;padding:18px;text-align:center}
+.rank-total{font-size:16px;color:var(--ink)}
+.rank-total b{color:var(--gold);font-size:26px}
+.rank-tier{margin:6px 0 12px;color:var(--muted)}
+.rank-tier b{color:var(--gold);letter-spacing:2px}
+.rank-table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 14px}
+.rank-table th,.rank-table td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--ink)}
+.rank-table th{color:var(--muted);font-weight:600;text-align:left}
+.rank-table td.num,.rank-table th.num{text-align:right}
+.rank-loading{color:var(--muted)}

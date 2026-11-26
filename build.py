@@ -272,7 +272,10 @@ def faith_page(f):
                      patronName="展示名字（可留空）", patronText="你的祈福语（120 字内）",
                      patronTxid="交易哈希（TXID）", patronBtn="验真并发布",
                      patronNeed="请填写祈福语和交易哈希", patronOk="验真成功！金色祈福卡已上墙 👑",
-                     patronFail="验真失败，请检查网络选择和交易哈希")
+                     patronFail="验真失败，请检查网络选择和交易哈希",
+                     rankLoading="正在查询链上记录，请稍候…", rankTotal="累计随喜",
+                     rankDateCol="日期", rankAmountCol="金额", rankShare="分享我的段位",
+                     rankShareBody="我在祈福阁的累计随喜 {amount}，段位「{tier}」🏮 来查你的功德段位")
     else:
         tiers = [{"min": 0, "name": "Kind Heart"}, {"min": 5, "name": "Oil Giver"},
                  {"min": 20, "name": "Temple Light"}, {"min": 100, "name": "Golden Patron"}]
@@ -292,7 +295,10 @@ def faith_page(f):
                      patronName="Display name (optional)", patronText="Your blessing (max 120 chars)",
                      patronTxid="Transaction hash (TXID)", patronBtn="Verify & Publish",
                      patronNeed="Please fill in your blessing and TXID", patronOk="Verified! Your golden card is on the wall 👑",
-                     patronFail="Verification failed — check the network and TXID")
+                     patronFail="Verification failed — check the network and TXID",
+                     rankLoading="Querying the chain, one moment…", rankTotal="Total giving",
+                     rankDateCol="Date", rankAmountCol="Amount", rankShare="Share my rank",
+                     rankShareBody="My total giving at BlessingNest: {amount} · Rank: {tier} 🕯️ Check your rank")
 
     amen_labels = {"christian": "Amen 🙏", "muslim": "Amin 🤲", "hindu": "Shubh 🙏",
                    "jewish": "Amen ✡️", "buddhist": "Sadhu 🙏", "chinese": "帮祈 🙏"}
@@ -304,6 +310,9 @@ def faith_page(f):
         "amenLabel": amen_labels.get(f["id"], "Amen 🙏"),
         "presetSentText": texts["presetSent"],
         "patronNeedText": texts["patronNeed"], "patronOkText": texts["patronOk"], "patronFailText": texts["patronFail"],
+        "rankLoadingText": texts["rankLoading"], "rankTotalText": texts["rankTotal"],
+        "rankDateCol": texts["rankDateCol"], "rankAmountCol": texts["rankAmountCol"],
+        "rankShareText": texts["rankShare"], "rankShareBody": texts["rankShareBody"],
         "tiers": tiers, "noPatronsText": texts["noPatrons"], "noRankText": texts["noRank"],
         "rankResultText": texts["rankResult"],
         "certTitle": texts["certTitle"], "certSub": texts["certSub"], "certBody": texts["certBody"],
@@ -381,12 +390,6 @@ def faith_page(f):
 </div>
 </div>
 <p class="sub" style="margin-top:16px">""" + f["donate_note"] + """</p>
-<div class="share-row">
-<a class="btn2" id="share-x" target="_blank" rel="noopener">Share on X</a>
-<a class="btn2" id="share-tg" target="_blank" rel="noopener">Telegram</a>
-<a class="btn2" id="share-wa" target="_blank" rel="noopener">WhatsApp</a>
-<button class="btn2" id="share-copy">Copy Link</button>
-</div>
 </div>
 
 <div class="card patron-card" id="patron-form">
@@ -415,6 +418,13 @@ def faith_page(f):
 <button class="btn2" id="rank-btn" style="margin:0">""" + texts["rankBtn"] + """</button>
 </div>
 <div class="rank-result" id="rank-result"></div>
+</div>
+
+<div class="share-row" style="margin:26px 0 8px">
+<a class="btn2" id="share-x" target="_blank" rel="noopener">Share on X</a>
+<a class="btn2" id="share-tg" target="_blank" rel="noopener">Telegram</a>
+<a class="btn2" id="share-wa" target="_blank" rel="noopener">WhatsApp</a>
+<button class="btn2" id="share-copy">Copy Link</button>
 </div>
 </main>
 <footer>
