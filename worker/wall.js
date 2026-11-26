@@ -154,7 +154,7 @@ export default {
         }
 
         const wish = { id: newId(), n: body.name ? clean(body.name, 30) : "Anonymous", t: text,
-          d: new Date().toISOString().slice(0, 10), type: "free", amen: 0 };
+          d: new Date().toISOString().slice(0, 10), ts: Date.now(), type: "free", amen: 0 };
         list.unshift(wish);
         await env.WALL.put("wishes:" + site, JSON.stringify(list.slice(0, MAX_WISHES)));
         await env.WALL.put(ipKey, String(ipCount + 1), { expirationTtl: 172800 });
@@ -179,7 +179,7 @@ export default {
         }
         const name = clean(body.name, 30) || (v.from ? v.from.slice(0, 6) + "…" + v.from.slice(-4) : "Patron");
         const wish = { id: newId(), n: name, t: text,
-          d: new Date().toISOString().slice(0, 10), type: "patron", amount: v.amount, chain, amen: 0 };
+          d: new Date().toISOString().slice(0, 10), ts: Date.now(), type: "patron", amount: v.amount, chain, amen: 0 };
         list.unshift(wish);
         await env.WALL.put("wishes:" + site, JSON.stringify(list.slice(0, MAX_WISHES)));
         await env.WALL.put("used:" + txid, "1");

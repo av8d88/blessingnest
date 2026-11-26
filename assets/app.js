@@ -64,81 +64,40 @@
     return '<button class="amen-btn" data-amen="' + w.id + '"' + (voted ? " disabled" : "") +
       '>' + F.amenLabel + ' <span>' + (w.amen || 0) + '</span></button>';
   }
-  function cardHtml(w) {
+  function cardHtml(w, pinned) {
     if (w.type === "patron") {
       return '<div class="wish patron"><span class="crown">👑</span><b>' + esc(w.n) + '</b>' +
         '<span class="pamount">$' + (w.amount || 0).toFixed(2) + '</span>' +
+        (pinned ? '<span class="pin-badge">' + F.pinBadgeText + '</span>' : '') +
         '<small> · ' + w.d + '</small><p>' + esc(w.t) + '</p>' + amenBtn(w) + '</div>';
     }
     return '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + w.d + '</small><p>' + esc(w.t) + '</p>' + amenBtn(w) + '</div>';
   }
-  // ===== ticker scroll engine: auto-scroll + manual swipe, seamless loop =====
-  var tickerEl = document.querySelector(".ticker");
-  var tickerAuto = true, tickerUnit = 0, tickerTimer = null, tickerLoopStarted = false;
-  function setupTicker(copyHeight) {
-    if (!tickerEl) return;
-    tickerUnit = copyHeight;
-    if (tickerUnit > 0 && tickerEl.scrollTop >= tickerUnit) tickerEl.scrollTop -= tickerUnit;
-    if (tickerLoopStarted) return;
-    tickerLoopStarted = true;
-    ["pointerdown", "touchstart"].forEach(function (ev) {
-      tickerEl.addEventListener(ev, function () {
-        tickerAuto = false;
-        if (tickerTimer) clearTimeout(tickerTimer);
-      }, { passive: true });
-    });
-    ["pointerup", "touchend", "pointercancel"].forEach(function (ev) {
-      tickerEl.addEventListener(ev, function () {
-        if (tickerTimer) clearTimeout(tickerTimer);
-        tickerTimer = setTimeout(function () { tickerAuto = true; }, 3000);
-      }, { passive: true });
-    });
-    tickerEl.addEventListener("wheel", function () {
-      tickerAuto = false;
-      if (tickerTimer) clearTimeout(tickerTimer);
-      tickerTimer = setTimeout(function () { tickerAuto = true; }, 3000);
-    }, { passive: true });
-    tickerEl.addEventListener("mouseenter", function () {
-      tickerAuto = false;
-      if (tickerTimer) clearTimeout(tickerTimer);
-    });
-    tickerEl.addEventListener("mouseleave", function () {
-      if (tickerTimer) clearTimeout(tickerTimer);
-      tickerTimer = setTimeout(function () { tickerAuto = true; }, 1500);
-    });
-    requestAnimationFrame(tickLoop);
-  }
-  function tickLoop() {
-    if (tickerAuto && tickerEl && tickerUnit > 0) {
-      tickerEl.scrollTop += 0.6;
-      if (tickerEl.scrollTop >= tickerUnit) tickerEl.scrollTop -= tickerUnit;
-    }
-    requestAnimationFrame(tickLoop);
-  }
-
+  // ===== static blessing wall: patrons pinned 2h on top (by amount), rest newest-first =====
+  var PIN_MS = 2 * 60 * 60 * 1000; // 2h patron pin window
   function renderWall() {
+    var now = Date.now();
+    var pinned = wallItems.filter(function (w) {
+      return w.type === "patron" && w.ts && (now - w.ts) < PIN_MS;
+    }).sort(function (a, b) {
+      if ((b.amount || 0) !== (a.amount || 0)) return (b.amount || 0) - (a.amount || 0);
+      return (b.ts || 0) - (a.ts || 0);
+    });
+    var rest = wallItems.filter(function (w) {
+      return !(w.type === "patron" && w.ts && (now - w.ts) < PIN_MS);
+    }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+
     var html = "";
-    wallItems.forEach(function (w) { html += cardHtml(w); });
+    pinned.forEach(function (w) { html += cardHtml(w, true); });
+    rest.forEach(function (w) { html += cardHtml(w, false); });
     F.seeds.forEach(function (w) {
       html += '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + F.seedDate + '</small><p>' + esc(w.t) + '</p></div>';
     });
     var inner = $("ticker-inner");
-    // measure one copy, then duplicate enough times so the loop always has runway
-    var one = '<div class="wall">' + html + '</div>';
-    inner.innerHTML = one;
-    var copyH = inner.firstChild ? inner.firstChild.offsetHeight : 0;
-    var copies = 2;
-    if (copyH > 0) {
-      var containerH = tickerEl ? tickerEl.clientHeight : 340;
-      copies = Math.max(2, Math.ceil((containerH * 2.5) / copyH));
-    }
-    var out = "";
-    for (var i = 0; i < copies; i++) out += one;
-    inner.innerHTML = out;
+    inner.innerHTML = '<div class="wall">' + html + '</div>';
     inner.querySelectorAll("[data-amen]").forEach(function (btn) {
       btn.addEventListener("click", function () { voteAmen(btn.getAttribute("data-amen"), btn); });
     });
-    setupTicker(copyH);
   }
   function voteAmen(id, btn) {
     if (getVoted().indexOf(id) >= 0) return;
