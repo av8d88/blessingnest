@@ -72,6 +72,51 @@
     }
     return '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + w.d + '</small><p>' + esc(w.t) + '</p>' + amenBtn(w) + '</div>';
   }
+  // ===== ticker scroll engine: auto-scroll + manual swipe, seamless loop =====
+  var tickerEl = document.querySelector(".ticker");
+  var tickerAuto = true, tickerHalf = 0, tickerTimer = null, tickerLoopStarted = false;
+  function setupTicker() {
+    if (!tickerEl) return;
+    var inner = $("ticker-inner");
+    tickerHalf = inner.scrollHeight / 2;
+    if (tickerEl.scrollTop >= tickerHalf) tickerEl.scrollTop -= tickerHalf;
+    if (tickerLoopStarted) return;
+    tickerLoopStarted = true;
+    ["pointerdown", "touchstart"].forEach(function (ev) {
+      tickerEl.addEventListener(ev, function () {
+        tickerAuto = false;
+        if (tickerTimer) clearTimeout(tickerTimer);
+      }, { passive: true });
+    });
+    ["pointerup", "touchend", "pointercancel"].forEach(function (ev) {
+      tickerEl.addEventListener(ev, function () {
+        if (tickerTimer) clearTimeout(tickerTimer);
+        tickerTimer = setTimeout(function () { tickerAuto = true; }, 3000);
+      }, { passive: true });
+    });
+    tickerEl.addEventListener("wheel", function () {
+      tickerAuto = false;
+      if (tickerTimer) clearTimeout(tickerTimer);
+      tickerTimer = setTimeout(function () { tickerAuto = true; }, 3000);
+    }, { passive: true });
+    tickerEl.addEventListener("mouseenter", function () {
+      tickerAuto = false;
+      if (tickerTimer) clearTimeout(tickerTimer);
+    });
+    tickerEl.addEventListener("mouseleave", function () {
+      if (tickerTimer) clearTimeout(tickerTimer);
+      tickerTimer = setTimeout(function () { tickerAuto = true; }, 1500);
+    });
+    requestAnimationFrame(tickLoop);
+  }
+  function tickLoop() {
+    if (tickerAuto && tickerEl && tickerHalf > 0) {
+      tickerEl.scrollTop += 0.6;
+      if (tickerEl.scrollTop >= tickerHalf) tickerEl.scrollTop -= tickerHalf;
+    }
+    requestAnimationFrame(tickLoop);
+  }
+
   function renderWall() {
     var html = "";
     wallItems.forEach(function (w) { html += cardHtml(w); });
@@ -84,10 +129,7 @@
     inner.querySelectorAll("[data-amen]").forEach(function (btn) {
       btn.addEventListener("click", function () { voteAmen(btn.getAttribute("data-amen"), btn); });
     });
-    // speed by content height
-    var h = inner.scrollHeight / 2;
-    var dur = Math.max(24, Math.round(h / 26));
-    inner.style.animationDuration = dur + "s";
+    setupTicker();
   }
   function voteAmen(id, btn) {
     if (getVoted().indexOf(id) >= 0) return;
