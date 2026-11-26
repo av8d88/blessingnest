@@ -49,16 +49,14 @@
     drawn = true;
   });
 
-  // ===== Blessing wall (local) =====
+  // ===== Blessing wall (GLOBAL, via Cloudflare Worker + KV) =====
+  var WALL_API = "https://blessing-wall.js8.workers.dev/api/wishes?site=" + F.id;
   var wallList = $("wall-list");
-  function getWishes() {
-    try { return JSON.parse(localStorage.getItem(store + "wishes") || "[]"); } catch (e) { return []; }
-  }
-  function saveWishes(w) { localStorage.setItem(store + "wishes", JSON.stringify(w.slice(0, 50))); }
+  var wallItems = [];
   function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
   function renderWall() {
     var html = "";
-    getWishes().forEach(function (w) {
+    wallItems.forEach(function (w) {
       html += '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + w.d + '</small><p>' + esc(w.t) + '</p></div>';
     });
     F.seeds.forEach(function (w) {
@@ -66,11 +64,26 @@
     });
     wallList.innerHTML = html;
   }
+  // load global wall (fallback: seeds only)
+  if (window.fetch) {
+    fetch(WALL_API).then(function (r) { return r.json(); }).then(function (d) {
+      wallItems = (d.wishes || []);
+      renderWall();
+    }).catch(function () { renderWall(); });
+  } else { renderWall(); }
+
   function addWish(text) {
-    var w = getWishes();
-    w.unshift({ t: text, n: F.youName, d: new Date().toLocaleDateString() });
-    saveWishes(w);
+    var item = { n: F.youName, t: text, d: new Date().toISOString().slice(0, 10) };
+    wallItems.unshift(item);
     renderWall();
+    // fire-and-forget sync to global wall (neutral name so it reads well worldwide)
+    if (window.fetch) {
+      fetch(WALL_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: F.youName === "你" ? "匿名善信" : "Anonymous", text: text })
+      }).catch(function () {});
+    }
   }
   $("hang-btn").addEventListener("click", function () {
     var t = $("wish-text").value.trim();

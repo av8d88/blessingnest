@@ -1,0 +1,7 @@
+name = "blessing-wall"
+main = "wall.js"
+compatibility_date = "2026-11-01"
+
+[[kv_namespaces]]
+binding = "WALL"
+id = "b39250dc43a1429fbfe8a10f369f23e7"
