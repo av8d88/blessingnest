@@ -74,12 +74,11 @@
   }
   // ===== ticker scroll engine: auto-scroll + manual swipe, seamless loop =====
   var tickerEl = document.querySelector(".ticker");
-  var tickerAuto = true, tickerHalf = 0, tickerTimer = null, tickerLoopStarted = false;
-  function setupTicker() {
+  var tickerAuto = true, tickerUnit = 0, tickerTimer = null, tickerLoopStarted = false;
+  function setupTicker(copyHeight) {
     if (!tickerEl) return;
-    var inner = $("ticker-inner");
-    tickerHalf = inner.scrollHeight / 2;
-    if (tickerEl.scrollTop >= tickerHalf) tickerEl.scrollTop -= tickerHalf;
+    tickerUnit = copyHeight;
+    if (tickerUnit > 0 && tickerEl.scrollTop >= tickerUnit) tickerEl.scrollTop -= tickerUnit;
     if (tickerLoopStarted) return;
     tickerLoopStarted = true;
     ["pointerdown", "touchstart"].forEach(function (ev) {
@@ -110,9 +109,9 @@
     requestAnimationFrame(tickLoop);
   }
   function tickLoop() {
-    if (tickerAuto && tickerEl && tickerHalf > 0) {
+    if (tickerAuto && tickerEl && tickerUnit > 0) {
       tickerEl.scrollTop += 0.6;
-      if (tickerEl.scrollTop >= tickerHalf) tickerEl.scrollTop -= tickerHalf;
+      if (tickerEl.scrollTop >= tickerUnit) tickerEl.scrollTop -= tickerUnit;
     }
     requestAnimationFrame(tickLoop);
   }
@@ -124,12 +123,22 @@
       html += '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + F.seedDate + '</small><p>' + esc(w.t) + '</p></div>';
     });
     var inner = $("ticker-inner");
+    // measure one copy, then duplicate enough times so the loop always has runway
     var one = '<div class="wall">' + html + '</div>';
-    inner.innerHTML = one + one; // duplicate for seamless loop
+    inner.innerHTML = one;
+    var copyH = inner.firstChild ? inner.firstChild.offsetHeight : 0;
+    var copies = 2;
+    if (copyH > 0) {
+      var containerH = tickerEl ? tickerEl.clientHeight : 340;
+      copies = Math.max(2, Math.ceil((containerH * 2.5) / copyH));
+    }
+    var out = "";
+    for (var i = 0; i < copies; i++) out += one;
+    inner.innerHTML = out;
     inner.querySelectorAll("[data-amen]").forEach(function (btn) {
       btn.addEventListener("click", function () { voteAmen(btn.getAttribute("data-amen"), btn); });
     });
-    setupTicker();
+    setupTicker(copyH);
   }
   function voteAmen(id, btn) {
     if (getVoted().indexOf(id) >= 0) return;
