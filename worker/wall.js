@@ -130,7 +130,8 @@ export default {
       let body;
       try { body = await request.json(); } catch (e) { return json({ error: "bad json" }, 400); }
       const type = clean(body.type, 10) || "free";
-      const text = clean(body.text, 140);
+      const textLimit = type === "patron" ? 60 : 140;
+      const text = clean(body.text, textLimit);
       if (!text) return json({ error: "empty wish" }, 400);
       if (/https?:\/\//i.test(text)) return json({ error: "no links in wishes" }, 400);
 

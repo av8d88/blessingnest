@@ -46,10 +46,9 @@
     drawn = true;
   });
 
-  // ===== Blessing wall (GLOBAL via CF Worker; free=preset only, patron=on-chain verified) =====
+  // ===== Blessing wall — scrolling ticker (GLOBAL via CF Worker) =====
   var WALL_API = "https://blessing-wall.js8.workers.dev/api/wishes?site=" + F.id;
   var AMEN_API = "https://blessing-wall.js8.workers.dev/api/amen?site=" + F.id;
-  var wallList = $("wall-list");
   var wallItems = [];
   function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
   function getVoted() {
@@ -79,10 +78,16 @@
     F.seeds.forEach(function (w) {
       html += '<div class="wish"><b>' + esc(w.n) + '</b><small> · ' + F.seedDate + '</small><p>' + esc(w.t) + '</p></div>';
     });
-    wallList.innerHTML = html;
-    wallList.querySelectorAll("[data-amen]").forEach(function (btn) {
+    var inner = $("ticker-inner");
+    var one = '<div class="wall">' + html + '</div>';
+    inner.innerHTML = one + one; // duplicate for seamless loop
+    inner.querySelectorAll("[data-amen]").forEach(function (btn) {
       btn.addEventListener("click", function () { voteAmen(btn.getAttribute("data-amen"), btn); });
     });
+    // speed by content height
+    var h = inner.scrollHeight / 2;
+    var dur = Math.max(24, Math.round(h / 26));
+    inner.style.animationDuration = dur + "s";
   }
   function voteAmen(id, btn) {
     if (getVoted().indexOf(id) >= 0) return;
@@ -91,7 +96,13 @@
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: id })
     }).then(function (r) { return r.json(); }).then(function (d) {
-      if (d.amen !== undefined) btn.querySelector("span").textContent = d.amen;
+      if (d.amen !== undefined) {
+        // sync all copies of this wish on the ticker
+        document.querySelectorAll('[data-amen="' + id + '"]').forEach(function (b) {
+          b.querySelector("span").textContent = d.amen;
+          b.disabled = true;
+        });
+      }
       markVoted(id);
     }).catch(function () { btn.disabled = false; });
   }
@@ -102,10 +113,13 @@
     }).catch(function () { renderWall(); });
   } else { renderWall(); }
 
-  // ===== Preset picker (free users: no typing) =====
+  // ===== Blessing modal: preset picker + confirm =====
+  var pickedPreset = null;
   function renderPresets() {
     var box = $("preset-list");
     if (!box) return;
+    pickedPreset = null;
+    $("bless-confirm").classList.remove("show");
     var pool = F.presets.slice();
     var picks = [];
     while (picks.length < 6 && pool.length) {
@@ -115,28 +129,50 @@
       return '<button class="preset-chip">' + esc(p) + '</button>';
     }).join("");
     box.querySelectorAll(".preset-chip").forEach(function (chip) {
-      chip.addEventListener("click", function () { postFree(chip.textContent, chip); });
+      chip.addEventListener("click", function () {
+        box.querySelectorAll(".preset-chip").forEach(function (c) { c.classList.remove("picked"); });
+        chip.classList.add("picked");
+        pickedPreset = chip.textContent;
+        $("bless-picked").textContent = pickedPreset;
+        $("bless-confirm").classList.add("show");
+      });
     });
   }
-  function postFree(text, chip) {
-    chip.disabled = true;
+  function openModal() {
+    renderPresets();
+    $("bless-modal").classList.add("show");
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal() {
+    $("bless-modal").classList.remove("show");
+    document.body.style.overflow = "";
+  }
+  var blessOpen = $("bless-open");
+  if (blessOpen) blessOpen.addEventListener("click", openModal);
+  var blessClose = $("bless-close");
+  if (blessClose) blessClose.addEventListener("click", closeModal);
+  var blessModal = $("bless-modal");
+  if (blessModal) blessModal.addEventListener("click", function (e) {
+    if (e.target === blessModal) closeModal();
+  });
+  var refreshBtn = $("preset-refresh");
+  if (refreshBtn) refreshBtn.addEventListener("click", renderPresets);
+  var blessSubmit = $("bless-submit");
+  if (blessSubmit) blessSubmit.addEventListener("click", function () {
+    if (!pickedPreset) return;
+    blessSubmit.disabled = true;
     fetch(WALL_API, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "free", text: text })
+      body: JSON.stringify({ type: "free", text: pickedPreset })
     }).then(function (r) { return r.json(); }).then(function (d) {
+      blessSubmit.disabled = false;
       if (d.wish) {
         wallItems.unshift(d.wish);
         renderWall();
-        chip.classList.add("sent");
-        chip.textContent = F.presetSentText;
-      } else {
-        chip.disabled = false;
+        closeModal();
       }
-    }).catch(function () { chip.disabled = false; });
-  }
-  renderPresets();
-  var refreshBtn = $("preset-refresh");
-  if (refreshBtn) refreshBtn.addEventListener("click", renderPresets);
+    }).catch(function () { blessSubmit.disabled = false; });
+  });
 
   // candle light also adds a preset-style wish (free type with preset text = candle text is custom...)
   // -> candle wishes now just light visually + show cert; wall entry only via presets/patron.

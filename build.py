@@ -269,7 +269,7 @@ def faith_page(f):
                      refresh="换一批", presetSent="已挂上墙 🙏",
                      patronH="功德主专属 · 自定义祈福卡",
                      patronSub="单笔捐赠满 10 USDT，即可发布一张金色自定义祈福卡（链上验真 · 一笔一卡）",
-                     patronName="展示名字（可留空）", patronText="你的祈福语（120 字内）",
+                     patronName="展示名字（可留空）", patronText="你的祈福语（60 字内）",
                      patronTxid="交易哈希（TXID）", patronBtn="验真并发布",
                      patronNeed="请填写祈福语和交易哈希", patronOk="验真成功！金色祈福卡已上墙 👑",
                      patronFail="验真失败，请检查网络选择和交易哈希",
@@ -292,7 +292,7 @@ def faith_page(f):
                      refresh="More blessings", presetSent="Pinned 🙏",
                      patronH="Patron Privilege · Custom Blessing Card",
                      patronSub="Donate 10+ USDT in a single transaction to publish a golden custom card (verified on-chain · one card per transaction)",
-                     patronName="Display name (optional)", patronText="Your blessing (max 120 chars)",
+                     patronName="Display name (optional)", patronText="Your blessing (max 60 chars)",
                      patronTxid="Transaction hash (TXID)", patronBtn="Verify & Publish",
                      patronNeed="Please fill in your blessing and TXID", patronOk="Verified! Your golden card is on the wall 👑",
                      patronFail="Verification failed — check the network and TXID",
@@ -302,6 +302,12 @@ def faith_page(f):
 
     amen_labels = {"christian": "Amen 🙏", "muslim": "Amin 🤲", "hindu": "Shubh 🙏",
                    "jewish": "Amen ✡️", "buddhist": "Sadhu 🙏", "chinese": "帮祈 🙏"}
+    bless_labels = {"christian": "Offer a Prayer", "muslim": "Make a Dua",
+                    "hindu": "Offer a Blessing", "jewish": "Give a Blessing",
+                    "buddhist": "Offer a Blessing", "chinese": "我也要祈福"}
+    confirm_labels = {"christian": "Confirm & Pin", "muslim": "Confirm & Pin",
+                      "hindu": "Confirm & Pin", "jewish": "Confirm & Pin",
+                      "buddhist": "Confirm & Pin", "chinese": "确认祈福上墙"}
     config = {
         "id": f["id"], "candleWallText": f["candle_wall_text"], "youName": f["you_name"],
         "seedDate": f["seed_date"], "onceDailyText": f["once_text"],
@@ -364,10 +370,24 @@ def faith_page(f):
 """ + tasbih_html + """
 <div class="card" id="wall">
 <h2 class="sec">""" + f["wall_h2"] + """</h2>
+<div class="ticker"><div class="ticker-inner" id="ticker-inner"></div></div>
+<div style="text-align:center;margin-top:16px">
+<button class="btn" id="bless-open">""" + bless_labels.get(f["id"], "Offer a Blessing") + """</button>
+</div>
+</div>
+
+<div class="bless-modal" id="bless-modal">
+<div class="bless-modal-card">
+<button class="bless-close" id="bless-close">&times;</button>
+<h3 style="color:var(--gold);letter-spacing:3px;text-align:center">""" + texts["presetH"] + """</h3>
 <p class="sub">""" + texts["presetSub"] + """</p>
 <div class="preset-box" id="preset-list"></div>
-<button class="btn2" id="preset-refresh">""" + texts["refresh"] + """</button>
-<div class="wall" id="wall-list"></div>
+<div style="text-align:center"><button class="btn2" id="preset-refresh">""" + texts["refresh"] + """</button></div>
+<div class="bless-confirm" id="bless-confirm">
+<p id="bless-picked"></p>
+<button class="btn" id="bless-submit">""" + confirm_labels.get(f["id"], "Confirm") + """</button>
+</div>
+</div>
 </div>
 
 <div class="card" id="donate">
@@ -398,7 +418,7 @@ def faith_page(f):
 <label for="patron-name">""" + texts["patronName"] + """</label>
 <input id="patron-name" maxlength="30">
 <label for="patron-text">""" + texts["patronText"] + """</label>
-<textarea id="patron-text" maxlength="120"></textarea>
+<textarea id="patron-text" maxlength="60"></textarea>
 <label for="patron-chain">Network / 网络</label>
 <select id="patron-chain"><option value="trc20">USDT · TRC20 (Tron)</option><option value="erc20">USDT · ERC20 (Ethereum)</option></select>
 <label for="patron-txid">""" + texts["patronTxid"] + """</label>

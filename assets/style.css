@@ -100,3 +100,20 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;bord
 .rank-table th{color:var(--muted);font-weight:600;text-align:left}
 .rank-table td.num,.rank-table th.num{text-align:right}
 .rank-loading{color:var(--muted)}
+/* scrolling ticker wall */
+.ticker{height:340px;overflow:hidden;position:relative;margin-top:12px;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(180deg,transparent,#000 8%,#000 92%,transparent)}
+.ticker-inner{animation:tick linear infinite}
+@keyframes tick{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+.ticker:hover .ticker-inner{animation-play-state:paused}
+/* blessing modal */
+.bless-modal{display:none;position:fixed;inset:0;background:rgba(10,4,5,.82);z-index:50;overflow-y:auto;padding:40px 16px}
+.bless-modal.show{display:block}
+.bless-modal-card{max-width:560px;margin:0 auto;background:var(--card);border:1px solid var(--gold2);border-radius:16px;padding:26px;position:relative;animation:rise .25s ease}
+.bless-close{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--muted);font-size:26px;cursor:pointer}
+.bless-close:hover{color:var(--gold)}
+.preset-chip.picked{border-color:var(--gold);color:var(--gold);background:rgba(232,193,90,.08)}
+.bless-confirm{display:none;margin-top:18px;text-align:center;border-top:1px solid var(--line);padding-top:16px}
+.bless-confirm.show{display:block}
+.bless-confirm p{color:var(--ink);font-size:15px;margin-bottom:12px}
